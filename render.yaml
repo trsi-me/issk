@@ -1,0 +1,18 @@
+# https://render.com/docs/blueprint-spec
+# نشر static لـ Flutter Web — البناء محلياً فقط: flutter build web ثم deploy/copy_web.ps1
+# (Render لا يشغّل Flutter؛ يقدّم فقط deploy/web)
+
+services:
+  - type: web
+    name: issk-web
+    runtime: static
+    rootDir: .
+    # يتأكد أنك نسخت مخرجات البناء قبل الدفع
+    buildCommand: test -f deploy/web/index.html && test -f deploy/web/flutter_bootstrap.js
+    staticPublishPath: deploy/web
+    indexDocument: index.html
+    # SPA: مسارات مثل /child لا تعطي 404
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
