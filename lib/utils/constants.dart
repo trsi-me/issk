@@ -1,20 +1,14 @@
+import 'cst_video_seed.dart';
+
 /// ثوابت التطبيق — أسماء التصنيفات والمسارات.
 class AppConstants {
   AppConstants._();
 
   static const String logoAsset = 'assets/images/Logo.jpeg';
 
-  /// تصنيفات الفيديوهات (للتبويب والفلترة)
-  static const List<String> videoCategories = [
-    'التحرش',
-    'الإلحاح والضغط',
-    'برمجيات خانقة',
-    'محتوى لأقل',
-    'محتوى غير لائق',
-    'تغيب عن الواقع',
-    'أسرار على الإنترنت',
-    'التنمر الإلكتروني',
-  ];
+  /// تصنيفات الفيديوهات المتطابقة مع مبادرة CST «توعية الأطفال عن مخاطر الإنترنت» (`CstVideoSeed`).
+  static List<String> get videoCategories =>
+      CstVideoSeed.clips.map((c) => c.title).toList();
 
   static const String activityVideo = 'video';
   static const String activityGame = 'game';

@@ -8,6 +8,7 @@ import '../models/progress_model.dart';
 import '../models/quiz_model.dart';
 import '../models/video_model.dart';
 import '../utils/constants.dart';
+import '../utils/cst_video_seed.dart';
 
 class DatabaseHelper {
   DatabaseHelper._();
@@ -15,7 +16,7 @@ class DatabaseHelper {
 
   static Database? _db;
 
-  static const int _version = 2;
+  static const int _version = 5;
 
   Future<Database> get database async {
     if (_db != null) return _db!;
@@ -76,6 +77,23 @@ CREATE TABLE IF NOT EXISTS parents (
           } catch (_) {}
 
           await _migrateYoutubeIds(db);
+        }
+        if (oldVersion < 3) {
+          await db.delete('videos');
+          await _seedCstVideos(db);
+        }
+        if (oldVersion < 4) {
+          final cnt = Sqflite.firstIntValue(
+                await db.rawQuery('SELECT COUNT(*) FROM videos'),
+              ) ??
+              0;
+          if (cnt == 0) {
+            await _seedCstVideos(db);
+          }
+        }
+        if (oldVersion < 5) {
+          await db.delete('videos');
+          await _seedCstVideos(db);
         }
       },
     );
@@ -149,8 +167,22 @@ CREATE TABLE progress (
 ''');
   }
 
-  /// معرّف فيديو يوتيوب توعوي (نفيش — الانترنت الآمن). يمكن توسيع القائمة لاحقاً.
+  /// معرّف يوتيوب احتياطي للترقيات القديمة (قبل حقول CST المنفصلة).
   static const String _ytMain = 'pY3NJ6ukRyw';
+
+  Future<void> _seedCstVideos(Database db) async {
+    for (var idx = 0; idx < CstVideoSeed.clips.length; idx++) {
+      final clip = CstVideoSeed.clips[idx];
+      await db.insert('videos', {
+        'title': clip.title,
+        'description': clip.description,
+        'category': clip.title,
+        'asset_path': 'assets/videos/video_$idx.mp4',
+        'youtube_video_id': clip.youtubeVideoId,
+        'order_index': idx,
+      });
+    }
+  }
 
   Future<void> _migrateYoutubeIds(Database db) async {
     final rows = await db.query('videos', orderBy: 'id ASC');
@@ -195,18 +227,7 @@ CREATE TABLE progress (
       await db.insert('games', g);
     }
 
-    var order = 0;
-    for (final cat in AppConstants.videoCategories) {
-      final idx = order++;
-      await db.insert('videos', {
-        'title': 'فيديو توعوي: $cat',
-        'description': 'محتوى تعليمي من يوتيوب حول السلامة الرقمية.',
-        'category': cat,
-        'asset_path': 'assets/videos/video_$idx.mp4',
-        'youtube_video_id': _ytMain,
-        'order_index': idx,
-      });
-    }
+    await _seedCstVideos(db);
 
     final quizRows = _seedQuizzes();
     for (final q in quizRows) {

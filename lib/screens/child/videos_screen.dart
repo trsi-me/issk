@@ -63,15 +63,24 @@ class _VideosScreenState extends State<VideosScreen> {
     return list;
   }
 
+  /// تجميع حسب التصنيف مع احترام ترتيب CST، وأي تصنيفات قديمة أو إضافية تُعرض في النهاية.
   Map<String, List<VideoModel>> _groupByCategory(List<VideoModel> items) {
-    final map = <String, List<VideoModel>>{};
+    final byCat = <String, List<VideoModel>>{};
+    for (final v in items) {
+      byCat.putIfAbsent(v.category, () => []).add(v);
+    }
+    final out = <String, List<VideoModel>>{};
     for (final c in AppConstants.videoCategories) {
-      final inCat = items.where((v) => v.category == c).toList();
-      if (inCat.isNotEmpty) {
-        map[c] = inCat;
+      if (byCat.containsKey(c)) {
+        out[c] = List<VideoModel>.from(byCat[c]!);
       }
     }
-    return map;
+    for (final e in byCat.entries) {
+      if (!out.containsKey(e.key)) {
+        out[e.key] = List<VideoModel>.from(e.value);
+      }
+    }
+    return out;
   }
 
   @override
@@ -323,7 +332,12 @@ class _VideoTile extends StatelessWidget {
                 ),
                 if (video.description != null && video.description!.isNotEmpty) ...[
                   const SizedBox(height: 6),
-                  Text(video.description!, style: AppTextStyles.caption),
+                  Text(
+                    video.description!,
+                    style: AppTextStyles.caption,
+                    maxLines: 5,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
               ],
             ),
