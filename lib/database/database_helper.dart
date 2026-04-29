@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
@@ -25,9 +26,11 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDb() async {
-    final path = p.join(await getDatabasesPath(), 'issk.db');
+    final dbPath = kIsWeb
+        ? 'issk.db'
+        : p.join(await getDatabasesPath(), 'issk.db');
     return openDatabase(
-      path,
+      dbPath,
       version: _version,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');

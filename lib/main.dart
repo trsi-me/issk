@@ -12,7 +12,8 @@ import 'utils/app_text_styles.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   if (kIsWeb) {
-    databaseFactory = databaseFactoryFfiWeb;
+    // SharedWorker غالباً يتعطل على استضافة ساكنة/CDN؛ التشغيل في الخيط الرئيسي أوضح للنشر.
+    databaseFactory = databaseFactoryFfiWebNoWebWorker;
   }
   runApp(const IsskApp());
 }
