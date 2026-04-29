@@ -7,10 +7,13 @@ services:
     name: issk-web
     runtime: static
     rootDir: .
-    # يتأكد أنك نسخت مخرجات البناء قبل الدفع
-    buildCommand: test -f deploy/web/index.html && test -f deploy/web/flutter_bootstrap.js
+    # يتأكد أن مخرجات الويب كاملة (يشمل ثنائيات SQLite للمتصفح)
+    buildCommand: test -f deploy/web/index.html && test -f deploy/web/flutter_bootstrap.js && test -f deploy/web/sqlite3.wasm && test -f deploy/web/sqflite_sw.js
     staticPublishPath: deploy/web
     indexDocument: index.html
+    # إن ظل خطأ SQLite/WASM في المتصفح: من لوحة Render > Static Site > Headers أضف لمسار /*:
+    #   Cross-Origin-Opener-Policy: same-origin
+    #   Cross-Origin-Embedder-Policy: credentialless   (أو require-corp إن لزم)
     # SPA: مسارات مثل /child لا تعطي 404
     routes:
       - type: rewrite
